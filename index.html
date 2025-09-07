@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>现代塔防游戏 - Modern Tower Defense</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- 游戏标题 -->
+        <header class="game-header">
+            <h1 class="game-title">
+                <i class="fas fa-chess-rook"></i>
+                现代塔防
+                <span class="subtitle">Modern Tower Defense</span>
+            </h1>
+        </header>
+
+        <!-- 游戏主界面 -->
+        <main class="game-main">
+            <!-- 游戏信息面板 -->
+            <div class="game-info">
+                <div class="info-panel">
+                    <!-- 资源状态 -->
+                    <div class="resource-section">
+                        <div class="resource-item">
+                            <i class="fas fa-coins"></i>
+                            <span class="label">金币</span>
+                            <span class="value" id="gold">500</span>
+                        </div>
+                        <div class="resource-item">
+                            <i class="fas fa-heart"></i>
+                            <span class="label">生命</span>
+                            <span class="value" id="lives">20</span>
+                        </div>
+                        <div class="resource-item">
+                            <i class="fas fa-trophy"></i>
+                            <span class="label">分数</span>
+                            <span class="value" id="score">0</span>
+                        </div>
+                    </div>
+
+                    <!-- 波次信息 -->
+                    <div class="wave-section">
+                        <div class="wave-info">
+                            <div class="wave-current">
+                                <span class="label">当前波次</span>
+                                <span class="value" id="current-wave">1</span>
+                            </div>
+                            <div class="wave-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="wave-progress"></div>
+                                </div>
+                                <span class="progress-text" id="enemies-remaining">0/0</span>
+                            </div>
+                        </div>
+                        <button class="wave-btn" id="start-wave">
+                            <i class="fas fa-play"></i>
+                            开始波次
+                        </button>
+                    </div>
+
+                    <!-- 游戏速度控制 -->
+                    <div class="speed-section">
+                        <div class="speed-controls">
+                            <button class="speed-btn" id="pause-btn">
+                                <i class="fas fa-pause"></i>
+                            </button>
+                            <button class="speed-btn active" id="normal-speed" data-speed="1">
+                                <i class="fas fa-play"></i>
+                                1x
+                            </button>
+                            <button class="speed-btn" id="fast-speed" data-speed="2">
+                                <i class="fas fa-forward"></i>
+                                2x
+                            </button>
+                            <button class="speed-btn" id="ultra-speed" data-speed="4">
+                                <i class="fas fa-fast-forward"></i>
+                                4x
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 游戏画布区域 -->
+            <div class="game-canvas-container">
+                <canvas id="game-canvas" width="800" height="600"></canvas>
+                
+                <!-- 游戏覆盖层 -->
+                <div class="game-overlay hidden" id="game-overlay">
+                    <div class="overlay-content">
+                        <div class="game-logo">
+                            <i class="fas fa-chess-rook"></i>
+                            <h2>现代塔防</h2>
+                        </div>
+                        
+                        <!-- 主菜单 -->
+                        <div class="game-menu" id="main-menu">
+                            <button class="menu-btn start-btn" id="start-game">
+                                <i class="fas fa-play"></i>
+                                开始游戏
+                            </button>
+                            <button id="show-settings" class="btn btn-secondary">
+                                <i class="fas fa-cog"></i> 设置
+                            </button>
+                            <button id="show-instructions" class="btn btn-secondary">
+                                <i class="fas fa-question-circle"></i> 说明
+                            </button>
+                            <button id="show-achievements" class="btn btn-secondary">
+                                <i class="fas fa-trophy"></i> 成就
+                            </button>
+                            <button id="show-leaderboard" class="btn btn-secondary">
+                                <i class="fas fa-crown"></i> 排行榜
+                            </button>
+                            <button id="open-level-editor" class="btn btn-secondary">
+                                <i class="fas fa-edit"></i> 关卡编辑器
+                            </button>
+                        </div>
+                        
+                        <!-- 游戏结束界面 -->
+                        <div class="game-over-menu hidden" id="game-over-menu">
+                            <h2 class="game-over-title" id="game-result">游戏结束!</h2>
+                            <div class="final-stats">
+                                <p>最终分数: <span id="final-score">0</span></p>
+                                <p>存活波次: <span id="final-wave">0</span></p>
+                                <p class="new-record hidden" id="new-record">🎉 新纪录!</p>
+                            </div>
+                            <div class="game-over-buttons">
+                                <button class="menu-btn restart-btn" id="restart-game">
+                                    <i class="fas fa-redo"></i>
+                                    重新开始
+                                </button>
+                                <button class="menu-btn" id="back-to-menu">
+                                    <i class="fas fa-home"></i>
+                                    返回主菜单
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 暂停界面 -->
+                        <div class="pause-menu hidden" id="pause-menu">
+                            <h2>游戏暂停</h2>
+                            <div class="pause-buttons">
+                                <button class="menu-btn" id="resume-game">
+                                    <i class="fas fa-play"></i>
+                                    继续游戏
+                                </button>
+                                <button class="menu-btn" id="pause-restart">
+                                    <i class="fas fa-redo"></i>
+                                    重新开始
+                                </button>
+                                <button class="menu-btn" id="pause-menu-btn">
+                                    <i class="fas fa-home"></i>
+                                    主菜单
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 塔信息面板 -->
+                <div class="tower-info-panel hidden" id="tower-info">
+                    <div class="tower-details">
+                        <h3 id="tower-name">塔信息</h3>
+                        <div class="tower-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">伤害:</span>
+                                <span class="stat-value" id="tower-damage">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">射程:</span>
+                                <span class="stat-value" id="tower-range">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">攻速:</span>
+                                <span class="stat-value" id="tower-speed">0</span>
+                            </div>
+                        </div>
+                        <div class="tower-actions">
+                            <button class="action-btn upgrade-btn" id="upgrade-tower">
+                                <i class="fas fa-arrow-up"></i>
+                                升级 (<span id="upgrade-cost">0</span>)
+                            </button>
+                            <button class="action-btn sell-btn" id="sell-tower">
+                                <i class="fas fa-trash"></i>
+                                出售 (+<span id="sell-value">0</span>)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 塔建设面板 -->
+            <div class="tower-panel">
+                <div class="panel-header">
+                    <h3>
+                        <i class="fas fa-hammer"></i>
+                        塔建设
+                    </h3>
+                </div>
+                <div class="tower-types">
+                    <div class="tower-type" id="basic-tower" data-type="basic">
+                        <div class="tower-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <div class="tower-details">
+                            <h4>基础塔</h4>
+                            <p class="tower-desc">平衡的攻击和射程</p>
+                            <div class="tower-cost">
+                                <i class="fas fa-coins"></i>
+                                <span>50</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tower-type" id="cannon-tower" data-type="cannon">
+                        <div class="tower-icon">
+                            <i class="fas fa-bomb"></i>
+                        </div>
+                        <div class="tower-details">
+                            <h4>加农炮</h4>
+                            <p class="tower-desc">高伤害，溅射攻击</p>
+                            <div class="tower-cost">
+                                <i class="fas fa-coins"></i>
+                                <span>100</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tower-type" id="laser-tower" data-type="laser">
+                        <div class="tower-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div class="tower-details">
+                            <h4>激光塔</h4>
+                            <p class="tower-desc">快速攻击，能量伤害</p>
+                            <div class="tower-cost">
+                                <i class="fas fa-coins"></i>
+                                <span>80</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tower-type" id="freeze-tower" data-type="freeze">
+                        <div class="tower-icon">
+                            <i class="fas fa-snowflake"></i>
+                        </div>
+                        <div class="tower-details">
+                            <h4>冰冻塔</h4>
+                            <p class="tower-desc">减速敌人，辅助攻击</p>
+                            <div class="tower-cost">
+                                <i class="fas fa-coins"></i>
+                                <span>60</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tower-type" id="sniper-tower" data-type="sniper">
+                        <div class="tower-icon">
+                            <i class="fas fa-crosshairs"></i>
+                        </div>
+                        <div class="tower-details">
+                            <h4>狙击塔</h4>
+                            <p class="tower-desc">超远射程，高精度</p>
+                            <div class="tower-cost">
+                                <i class="fas fa-coins"></i>
+                                <span>120</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tower-type" id="poison-tower" data-type="poison">
+                        <div class="tower-icon">
+                            <i class="fas fa-skull"></i>
+                        </div>
+                        <div class="tower-details">
+                            <h4>毒气塔</h4>
+                            <p class="tower-desc">持续伤害，范围攻击</p>
+                            <div class="tower-cost">
+                                <i class="fas fa-coins"></i>
+                                <span>90</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 游戏说明弹窗 -->
+        <div class="modal hidden" id="instructions-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>游戏说明</h3>
+                    <button class="close-btn" id="close-instructions">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="instructions">
+                        <h4>🎯 游戏目标</h4>
+                        <p>建造防御塔阻止敌人到达终点，保护你的基地！</p>
+                        
+                        <h4>🏗️ 建造塔</h4>
+                        <ul>
+                            <li>点击右侧面板选择塔类型</li>
+                            <li>在地图空地上点击放置</li>
+                            <li>每种塔都有独特的特性和用途</li>
+                        </ul>
+                        
+                        <h4>⚡ 塔类型</h4>
+                        <ul>
+                            <li><strong>基础塔:</strong> 平衡的攻击力和射程</li>
+                            <li><strong>加农炮:</strong> 高伤害溅射攻击</li>
+                            <li><strong>激光塔:</strong> 快速连续攻击</li>
+                            <li><strong>冰冻塔:</strong> 减速敌人移动</li>
+                            <li><strong>狙击塔:</strong> 超远射程精确打击</li>
+                            <li><strong>毒气塔:</strong> 持续毒素伤害</li>
+                        </ul>
+                        
+                        <h4>🌊 波次系统</h4>
+                        <ul>
+                            <li>每波敌人数量和强度递增</li>
+                            <li>击败敌人获得金币奖励</li>
+                            <li>合理规划防御布局</li>
+                        </ul>
+                        
+                        <h4>💰 经济系统</h4>
+                        <ul>
+                            <li>击败敌人获得金币</li>
+                            <li>升级塔提升威力</li>
+                            <li>出售塔回收部分资金</li>
+                        </ul>
+                        
+                        <h4>🎮 操作说明</h4>
+                        <ul>
+                            <li>鼠标点击选择和放置塔</li>
+                            <li>点击已建造的塔查看详情</li>
+                            <li>使用速度控制调节游戏节奏</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设置弹窗 -->
+        <div class="modal hidden" id="settings-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>游戏设置</h3>
+                    <button class="close-btn" id="close-settings">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="settings">
+                        <div class="setting-item">
+                            <label for="difficulty-select">游戏难度:</label>
+                            <select id="difficulty-select" class="setting-select">
+                                <option value="easy">简单</option>
+                                <option value="normal" selected>普通</option>
+                                <option value="hard">困难</option>
+                                <option value="nightmare">噩梦</option>
+                            </select>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <label for="graphics-quality">画质设置:</label>
+                            <select id="graphics-quality" class="setting-select">
+                                <option value="low">低</option>
+                                <option value="medium" selected>中</option>
+                                <option value="high">高</option>
+                            </select>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <label>
+                                <input type="checkbox" id="sound-enabled" checked>
+                                启用音效
+                            </label>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <label>
+                                <input type="checkbox" id="show-range" checked>
+                                显示塔射程
+                            </label>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <label>
+                                <input type="checkbox" id="show-path"> 显示路径
+                            </label>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <label>
+                                音效音量：
+                                <input type="range" id="sound-volume" min="0" max="100" value="50">
+                            </label>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <label>
+                                音乐音量：
+                                <input type="range" id="music-volume" min="0" max="100" value="30">
+                            </label>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <button class="menu-btn" id="reset-progress">
+                                <i class="fas fa-trash"></i>
+                                重置进度
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 成就模态框 -->
+    <div id="achievements-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-trophy"></i> 成就系统</h2>
+                <button id="close-achievements" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="achievement-progress">
+                    <div class="progress-text">
+                        <span>进度：</span>
+                        <span id="achievement-progress-text">0/10 (0%)</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="achievement-progress-bar" class="progress-fill"></div>
+                    </div>
+                </div>
+                <div id="achievements-list" class="achievements-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 排行榜模态框 -->
+    <div id="leaderboard-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-crown"></i> 排行榜</h2>
+                <button id="close-leaderboard" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="leaderboard-actions">
+                    <button id="export-scores" class="btn btn-secondary">
+                        <i class="fas fa-download"></i> 导出
+                    </button>
+                    <button id="clear-scores" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> 清空
+                    </button>
+                </div>
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>排名</th>
+                            <th>玩家</th>
+                            <th>分数</th>
+                            <th>波数</th>
+                            <th>日期</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 粒子容器 -->
+    <div class="particles" id="particles"></div>
+
+    <script src="audio.js"></script>
+    <script src="achievements.js"></script>
+    <script src="leaderboard.js"></script>
+    <script src="level-editor.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
